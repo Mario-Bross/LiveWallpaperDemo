@@ -1,0 +1,2 @@
+September 02 2018
+	- Added ChangeLog.txt
