@@ -4,13 +4,11 @@ import android.app.WallpaperInfo;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -33,7 +31,6 @@ public class LiveWallpaperActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live_wallpaper);
         ButterKnife.bind(this);
-//        checkWritePermission();
         setButtonTitle();
         button.setOnClickListener(getOnClickListener());
     }
@@ -51,24 +48,6 @@ public class LiveWallpaperActivity extends AppCompatActivity {
             }
         };
     }
-
-
-//    private void checkWritePermission() {
-//
-//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-//            boolean settingsCanWrite = Settings.System.canWrite(this);
-//
-//            if (!settingsCanWrite) {
-//                setWritePermission();
-//            }
-//        }
-//    }
-
-//    private void setWritePermission() {
-//        Toast.makeText(this, "Require Permission to Clear Live Wallpaper", Toast.LENGTH_LONG).show();
-//        Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-//        startActivity(intent);
-//    }
 
 
     private void setButtonTitle() {

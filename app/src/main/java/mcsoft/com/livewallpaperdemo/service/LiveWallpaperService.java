@@ -39,7 +39,6 @@ public class LiveWallpaperService extends WallpaperService {
 
             super.onOffsetsChanged(xOffset, yOffset, xOffsetStep, yOffsetStep, xPixelOffset, yPixelOffset);
             // TODO Handle homescreen offset events.
-//            drawWallpaper();
 
         }
 
@@ -59,11 +58,8 @@ public class LiveWallpaperService extends WallpaperService {
 
         @Override
         public void onVisibilityChanged(boolean visible) {
-//            mVisible = visible;
             if (visible) {
-//                drawFrame();
             } else {
-//                mHandler.removeCallbacks(mDrawCube);
             }
         }
 

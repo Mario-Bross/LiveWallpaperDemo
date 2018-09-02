@@ -113,6 +113,4 @@ public class LiveWallpaperActivity extends AppCompatActivity {
 
     }
 
-
-
 }
