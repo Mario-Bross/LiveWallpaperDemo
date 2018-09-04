@@ -20,21 +20,16 @@ android {
     flavorDimensions "API", "MODE"
 
     productFlavors {
-        paid {
-            dimension "MODE"
-            applicationIdSuffix ".paid"
-        }
 
-        free {
+        common {
             dimension "MODE"
-            applicationIdSuffix ".free"
+            applicationIdSuffix ".common"
         }
 
         minApi17 {
             dimension "API"
             minSdkVersion 17
             versionCode 1000
-//            maxSdkVersion 19
             applicationIdSuffix ".minApi23"
         }
 
@@ -42,7 +37,6 @@ android {
             dimension "API"
             minSdkVersion 21
             versionCode 2000
-//            maxSdkVersion 22
             applicationIdSuffix ".minApi21"
         }
 
