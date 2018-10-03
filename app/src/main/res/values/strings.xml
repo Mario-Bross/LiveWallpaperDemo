@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">LiveWallpaperDemo</string>
+    <string name="author">Mario</string>
+    <string name="description">Live Wallpaper Demo</string>
+</resources>

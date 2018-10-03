@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--android:thumbnail="@drawable/wallpapericon"-->
+<wallpaper
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:author="@string/author"
+    android:description="@string/description"
+    />
+
