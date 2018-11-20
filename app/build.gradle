@@ -17,20 +17,28 @@ android {
         }
     }
 
-    flavorDimensions "API", "MODE"
+    flavorDimensions "API","SCHEDULER"
 
     productFlavors {
 
-        common {
-            dimension "MODE"
-            applicationIdSuffix ".common"
+
+        jobApi17 {
+            dimension "SCHEDULER"
+            minSdkVersion 17
+            versionCode 5000
+        }
+
+        JobApi21 {
+            dimension "SCHEDULER"
+            minSdkVersion 21
+            versionCode 6000
         }
 
         minApi17 {
             dimension "API"
             minSdkVersion 17
             versionCode 1000
-            applicationIdSuffix ".minApi23"
+            applicationIdSuffix ".minApi17"
         }
 
         minApi21 {
