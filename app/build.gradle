@@ -21,19 +21,6 @@ android {
 
     productFlavors {
 
-
-        jobApi17 {
-            dimension "SCHEDULER"
-            minSdkVersion 17
-            versionCode 5000
-        }
-
-        JobApi21 {
-            dimension "SCHEDULER"
-            minSdkVersion 21
-            versionCode 6000
-        }
-
         minApi17 {
             dimension "API"
             minSdkVersion 17
@@ -55,8 +42,38 @@ android {
             applicationIdSuffix ".minApi23"
         }
 
+        jobApi17 {
+            dimension "SCHEDULER"
+            minSdkVersion 17
+            versionCode 5000
+        }
+
+        jobApi21 {
+            dimension "SCHEDULER"
+            minSdkVersion 21
+            versionCode 6000
+        }
 
     }
+
+    variantFilter { variant ->
+        def names = variant.flavors*.name
+        // To check for a certain build type, use variant.buildType.name == "<buildType>"
+        if (names.contains("minApi17") && names.contains("jobApi21")) {
+            // Gradle ignores any variants that satisfy the conditions above.
+            setIgnore(true)
+        }
+        if (names.contains("minApi21") && names.contains("jobApi17")) {
+            // Gradle ignores any variants that satisfy the conditions above.
+            setIgnore(true)
+        }
+        if (names.contains("minApi23") && names.contains("jobApi17")) {
+            // Gradle ignores any variants that satisfy the conditions above.
+            setIgnore(true)
+        }
+    }
+
+
 }
 
 dependencies {
