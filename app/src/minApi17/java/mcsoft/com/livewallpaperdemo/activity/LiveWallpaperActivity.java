@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -26,6 +27,8 @@ public class LiveWallpaperActivity extends AppCompatActivity {
 
     @BindView(R.id.enable_wallpaper_button)
     Button button;
+    @BindView(R.id.tv_version_type)
+    TextView versionType;
 
 
     @Override
@@ -34,6 +37,7 @@ public class LiveWallpaperActivity extends AppCompatActivity {
         setContentView(R.layout.activity_live_wallpaper);
         ButterKnife.bind(this);
         setButtonTitle();
+        versionType.setText("version: API 17");
         button.setOnClickListener(getOnClickListener());
     }
 
