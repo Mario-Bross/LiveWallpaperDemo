@@ -7,21 +7,32 @@ import android.net.Uri;
 import android.service.wallpaper.WallpaperService;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 import mcsoft.com.livewallpaperdemo.R;
+import mcsoft.com.livewallpaperdemo.activity.LiveWallpaperActivity;
 import mcsoft.com.livewallpaperdemo.utils.GlideApp;
+import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperObservable;
 import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperUtils;
 
 public class LiveWallpaperService extends WallpaperService {
+
+    private final static String TAG = LiveWallpaperService.class.getCanonicalName();
+
     @Override
     public Engine onCreateEngine() {
-        return new WallpaperEngine();
+        WallpaperEngine engine = new WallpaperEngine();
+        return engine;
     }
+
+
 
     class WallpaperEngine  extends  WallpaperService.Engine {
 
@@ -31,6 +42,12 @@ public class LiveWallpaperService extends WallpaperService {
             // TODO Handle initialization.
             // Preview
             loadWallpaper();
+        }
+
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            LiveWallpaperObservable.getInstance().doComplete();
         }
 
         @Override
@@ -54,6 +71,7 @@ public class LiveWallpaperService extends WallpaperService {
             // TODO Surface has been created, run the Thread that will
             // update the display. Draw wallpaper here
             loadWallpaper();
+            doSubscription();
         }
 
         @Override
@@ -110,6 +128,35 @@ public class LiveWallpaperService extends WallpaperService {
                 });
 
         }
+
+        private void doSubscription() {
+            if (isPreview() == false) {
+                Observer<String> observer = new Observer<String>() {
+                    Disposable dis;
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        dis = d;
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        Log.i(TAG, s);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.i(TAG, "Wallpaper completed");
+                    }
+                };
+                LiveWallpaperObservable.getInstance().getObservable().subscribe(observer);
+            }
+        }
+
     }
 }
 

@@ -19,6 +19,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import mcsoft.com.livewallpaperdemo.R;
 import mcsoft.com.livewallpaperdemo.service.LiveWallpaperService;
+import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperObservable;
 
 public class LiveWallpaperActivity extends AppCompatActivity {
 
@@ -101,6 +102,7 @@ public class LiveWallpaperActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CHANGE_WALLPAPER_STATUS_CODE) {
             setButtonTitle();
+            LiveWallpaperObservable.getInstance().changeWallpaper("Wallpaper enabled");
         }
     }
 
@@ -108,6 +110,7 @@ public class LiveWallpaperActivity extends AppCompatActivity {
     private void disableWallpaper() {
         WallpaperManager wpm = (WallpaperManager) getSystemService(WALLPAPER_SERVICE);
         try {
+            LiveWallpaperObservable.getInstance().changeWallpaper("Wallpaper disabled");
             wpm.clear();
             setButtonTitle();
         } catch (IOException e) {
