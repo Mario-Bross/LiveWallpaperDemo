@@ -14,18 +14,24 @@ public class LiveWallpaperObservable {
     }
 
 
-    private PublishSubject<String> publisher;
+    private PublishSubject<Integer> publisher;
 
     private LiveWallpaperObservable() {
     }
 
-    public Observable<String> getObservable() {
+    public Observable<Integer> createObservable() {
         publisher = PublishSubject.create();
         return publisher;
     }
 
-    public void changeWallpaper( String param) {
-        publisher.onNext(param);
+
+    public Observable<Integer> getObservable() {
+        publisher = PublishSubject.create();
+        return publisher;
+    }
+
+    public void changeWallpaper(Integer res) {
+        publisher.onNext(res);
     }
 
     public void doComplete() {
@@ -33,4 +39,6 @@ public class LiveWallpaperObservable {
     }
 
 
+    private void test() {
+    }
 }

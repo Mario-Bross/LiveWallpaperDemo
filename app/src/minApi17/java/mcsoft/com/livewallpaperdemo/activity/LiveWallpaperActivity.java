@@ -4,14 +4,12 @@ import android.app.WallpaperInfo;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -27,7 +25,17 @@ public class LiveWallpaperActivity extends AppCompatActivity {
     private final static String TAG = LiveWallpaperActivity.class.getCanonicalName();
 
     @BindView(R.id.enable_wallpaper_button)
-    Button button;
+    Button enableButton;
+
+    @BindView(R.id.wallpaper1)
+    Button enableWallpaper1;
+
+    @BindView(R.id.wallpaper2)
+    Button enableWallpaper2;
+
+    @BindView(R.id.wallpaper3)
+    Button enableWallpaper3;
+
     @BindView(R.id.tv_version_type)
     TextView versionType;
 
@@ -39,11 +47,14 @@ public class LiveWallpaperActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         setButtonTitle();
         versionType.setText("version: API 17");
-        button.setOnClickListener(getOnClickListener());
+        enableButton.setOnClickListener(enableWallpaperListener());
+        enableWallpaper1.setOnClickListener(enableWallpaper());
+        enableWallpaper2.setOnClickListener(enableWallpaper());
+        enableWallpaper3.setOnClickListener(enableWallpaper());
     }
 
 
-    private View.OnClickListener getOnClickListener() {
+    private View.OnClickListener enableWallpaperListener() {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -56,14 +67,26 @@ public class LiveWallpaperActivity extends AppCompatActivity {
         };
     }
 
-
+    private View.OnClickListener enableWallpaper() {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isWallpaperActive() == true) {
+                    int id = v.getId();
+                    if (id == R.id.wallpaper1) LiveWallpaperObservable.getInstance().changeWallpaper(R.drawable.wallpaper1);
+                    if (id == R.id.wallpaper2) LiveWallpaperObservable.getInstance().changeWallpaper(R.drawable.wallpaper2);
+                    if (id == R.id.wallpaper3) LiveWallpaperObservable.getInstance().changeWallpaper(R.drawable.wallpaper3);
+                }
+            }
+        };
+    }
 
     private void setButtonTitle() {
 
         if (isWallpaperActive() == true) {
-            button.setText("Disable Wallpaper");
+            enableButton.setText("Disable Wallpaper");
         } else {
-            button.setText("Enable Wallpaper");
+            enableButton.setText("Enable Wallpaper");
         }
 
     }
@@ -100,9 +123,9 @@ public class LiveWallpaperActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == CHANGE_WALLPAPER_STATUS_CODE) {
+        if (requestCode == CHANGE_WALLPAPER_STATUS_CODE && isWallpaperActive()) {
             setButtonTitle();
-            LiveWallpaperObservable.getInstance().changeWallpaper("Wallpaper enabled");
+            LiveWallpaperObservable.getInstance().changeWallpaper(R.drawable.wallpaper1);
         }
     }
 
@@ -110,14 +133,12 @@ public class LiveWallpaperActivity extends AppCompatActivity {
     private void disableWallpaper() {
         WallpaperManager wpm = (WallpaperManager) getSystemService(WALLPAPER_SERVICE);
         try {
-            LiveWallpaperObservable.getInstance().changeWallpaper("Wallpaper disabled");
             wpm.clear();
             setButtonTitle();
         } catch (IOException e) {
             e.printStackTrace();
             Log.d(TAG, "Live Wallpaper cannot be disabled");
         }
-
     }
 
 }
