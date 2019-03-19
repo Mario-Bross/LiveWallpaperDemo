@@ -7,20 +7,40 @@ import android.net.Uri;
 import android.service.wallpaper.WallpaperService;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.subjects.PublishSubject;
 import mcsoft.com.livewallpaperdemo.R;
+import mcsoft.com.livewallpaperdemo.activity.LiveWallpaperActivity;
 import mcsoft.com.livewallpaperdemo.utils.GlideApp;
+import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperObservable;
 import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperUtils;
 
 public class LiveWallpaperService extends WallpaperService {
+
+
+    private final static String TAG = LiveWallpaperService.class.getCanonicalName();
+
+
+    @Override
+    public void onCreate() {
+    }
+
     @Override
     public Engine onCreateEngine() {
-        return new WallpaperEngine();
+        WallpaperEngine engine = new WallpaperEngine();
+        return engine;
+    }
+
+    @Override
+    public void onDestroy() {
     }
 
     class WallpaperEngine  extends  WallpaperService.Engine {
@@ -30,7 +50,16 @@ public class LiveWallpaperService extends WallpaperService {
             super.onCreate(surfaceHolder);
             // TODO Handle initialization.
             // Preview
-            loadWallpaper();
+//            loadWallpaper(R.drawable.wallpaper1);
+            doSubscription();
+        }
+
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            if (isPreview() == false) {
+                LiveWallpaperObservable.getInstance().doComplete();
+            }
         }
 
         @Override
@@ -51,9 +80,7 @@ public class LiveWallpaperService extends WallpaperService {
         @Override
         public void onSurfaceCreated(SurfaceHolder holder) {
             super.onSurfaceCreated(holder);
-            // TODO Surface has been created, run the Thread that will
-            // update the display. Draw wallpaper here
-            loadWallpaper();
+            // TODO Surface has been created,
         }
 
         @Override
@@ -69,12 +96,12 @@ public class LiveWallpaperService extends WallpaperService {
         }
 
 
-        private void loadWallpaper() {
+        private void loadWallpaper(Integer res) {
 
             Context context = getApplicationContext();
 
             // TODO: Load image uri from Database
-            Uri imageUri = LiveWallpaperUtils.getUriToResource(context, R.drawable.wallpaper1);
+            Uri imageUri = LiveWallpaperUtils.getUriToResource(context, res.intValue());
             drawWallpaper(imageUri);
 
         }
@@ -110,6 +137,37 @@ public class LiveWallpaperService extends WallpaperService {
                 });
 
         }
+
+        private void doSubscription() {
+            if (isPreview() == false) {
+                Observer<Integer> observer = new Observer<Integer>() {
+                    Disposable dis;
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        dis = d;
+                    }
+
+                    @Override
+                    public void onNext(Integer res) {
+                        Log.i(TAG, "Setting wallpaper, disposable = " + dis.isDisposed());
+                        loadWallpaper(res);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        dis.dispose();
+                        Log.i(TAG, "Wallpaper completed, disposable = " + dis.isDisposed());
+                    }
+                };
+                LiveWallpaperObservable.getInstance().getObservable().subscribe(observer);
+            }
+        }
+
     }
 }
 
