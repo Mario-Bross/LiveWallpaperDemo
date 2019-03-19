@@ -1,7 +1,10 @@
 package mcsoft.com.livewallpaperdemo.utils;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.functions.Function;
 import io.reactivex.subjects.PublishSubject;
+import mcsoft.com.livewallpaperdemo.service.LiveWallpaperService;
 
 public class LiveWallpaperObservable {
 
@@ -18,12 +21,6 @@ public class LiveWallpaperObservable {
 
     private LiveWallpaperObservable() {
     }
-
-    public Observable<Integer> createObservable() {
-        publisher = PublishSubject.create();
-        return publisher;
-    }
-
 
     public Observable<Integer> getObservable() {
         publisher = PublishSubject.create();

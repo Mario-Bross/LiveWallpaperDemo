@@ -30,15 +30,20 @@ public class LiveWallpaperService extends WallpaperService {
 
 
     @Override
+    public void onCreate() {
+    }
+
+    @Override
     public Engine onCreateEngine() {
         WallpaperEngine engine = new WallpaperEngine();
         return engine;
     }
 
+    @Override
+    public void onDestroy() {
+    }
 
     class WallpaperEngine  extends  WallpaperService.Engine {
-
-
 
         @Override
         public void onCreate(SurfaceHolder surfaceHolder) {
