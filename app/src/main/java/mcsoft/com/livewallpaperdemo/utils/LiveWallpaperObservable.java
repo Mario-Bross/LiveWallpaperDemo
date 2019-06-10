@@ -20,19 +20,22 @@ public class LiveWallpaperObservable {
     private PublishSubject<Integer> publisher;
 
     private LiveWallpaperObservable() {
+        publisher = PublishSubject.create();
     }
 
     public Observable<Integer> getObservable() {
-        publisher = PublishSubject.create();
         return publisher;
     }
 
     public void changeWallpaper(Integer res) {
-        publisher.onNext(res);
+        if (publisher != null) {
+            publisher.onNext(res);
+        }
     }
 
     public void doComplete() {
         publisher.onComplete();
+        publisher = null;
     }
 
 
