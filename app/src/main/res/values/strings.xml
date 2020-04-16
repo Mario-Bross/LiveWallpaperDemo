@@ -2,4 +2,9 @@
     <string name="app_name">LiveWallpaperDemo</string>
     <string name="author">Mario</string>
     <string name="description">Live Wallpaper Demo</string>
+
+    <string name="shared_pref_resource_id">shared_pref_resource_id</string>
+    <string name="shared_pref_name">live_wallpaper_shared_pref</string>
+
+
 </resources>

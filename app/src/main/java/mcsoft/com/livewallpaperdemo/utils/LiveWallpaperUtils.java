@@ -1,13 +1,44 @@
 package mcsoft.com.livewallpaperdemo.utils;
 
+import android.app.WallpaperInfo;
+import android.app.WallpaperManager;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.support.annotation.AnyRes;
 import android.support.annotation.NonNull;
+import android.util.Log;
+
+import mcsoft.com.livewallpaperdemo.service.LiveWallpaperService;
+
+import static android.content.Context.WALLPAPER_SERVICE;
 
 public class LiveWallpaperUtils {
+
+    public final static String TAG = "LiveWallpaper";
+
+    public static boolean isWallpaperActive(Context context) {
+        boolean result = false;
+
+        WallpaperManager wpm = (WallpaperManager) context.getSystemService(WALLPAPER_SERVICE);
+        WallpaperInfo info = wpm.getWallpaperInfo();
+
+        if  (info != null) {
+            ComponentName serviceComponent = info.getComponent();
+            String serviceClassName = serviceComponent.getClassName();
+            String liveWallpaperClassName = LiveWallpaperService.class.getName();
+            if (serviceClassName.equals(liveWallpaperClassName)) {
+                Log.d(LiveWallpaperUtils.TAG, "isWallpaperActive:: Live Wallpaper is already running");
+                result = true;
+            } else {
+                Log.d(LiveWallpaperUtils.TAG, "isWallpaperActive:: Live Wallpaper is not running, this should be a preview");
+            }
+        } else {
+        }
+        return result;
+    }
 
     public static final Uri getUriToResource(@NonNull Context context,
                                              @AnyRes int resId)
