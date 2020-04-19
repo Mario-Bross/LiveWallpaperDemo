@@ -7,8 +7,8 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
-import android.support.annotation.AnyRes;
-import android.support.annotation.NonNull;
+import androidx.annotation.AnyRes;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import mcsoft.com.livewallpaperdemo.service.LiveWallpaperService;
