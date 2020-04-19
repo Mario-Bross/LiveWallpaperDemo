@@ -160,7 +160,7 @@ public class LiveWallpaperService extends WallpaperService {
         private Single<Boolean> getWallpaperResourceImageObservable() {
 
             // Subject - source of all events
-            Observable<DataItem> subjectObservable  = LiveWallpaperObservable.getInstance().getObservable();
+            Observable<DataItem> subjectObservable  = LiveWallpaperObservable.getInstance().listenToObservable();
 
             // Single emits true or false
             Single<Boolean> wallpaperResourceImageObservable = subjectObservable.any(new Predicate<DataItem>() {
@@ -197,11 +197,11 @@ public class LiveWallpaperService extends WallpaperService {
                         // Send Message
                         LiveWallpaperObservable.
                                 getInstance().
-                                publishData(new Message("Wallpaer changed succesfully"));
+                            doNext(new Message("Wallpaer changed succesfully"));
                         // Send WallpaperInfo
                         LiveWallpaperObservable.
                                 getInstance().
-                                publishData(new WallpaperInfoData(LiveWallpaperUtils.getUriToResource(getApplicationContext(), ((WallpaperResourceImage) currentWallpaperResourceImage).resId)));
+                            doNext(new WallpaperInfoData(LiveWallpaperUtils.getUriToResource(getApplicationContext(), ((WallpaperResourceImage) currentWallpaperResourceImage).resId)));
                         saveWallpaperInSharedPref((WallpaperResourceImage) currentWallpaperResourceImage);
                         disposable.dispose();
                         getWallpaperResourceImageObservable().subscribe(this);
@@ -219,7 +219,7 @@ public class LiveWallpaperService extends WallpaperService {
 
         private Single<Boolean> getWallpaperInfoRequestObservable() {
             // Subject - source of all events
-            Observable<DataItem> subjectObservable  = LiveWallpaperObservable.getInstance().getObservable();
+            Observable<DataItem> subjectObservable  = LiveWallpaperObservable.getInstance().listenToObservable();
             // Single emits true or false
             Single<Boolean> wallpaperInfoRequestObservable = subjectObservable.any(new Predicate<DataItem>() {
                 @Override
@@ -235,6 +235,7 @@ public class LiveWallpaperService extends WallpaperService {
             return wallpaperInfoRequestObservable;
         }
 
+        // Move to separate class
         private void observeWallpaperInfoRequest() {
             SingleObserver<Boolean>  wallpaperInfoRequestObserver = (new SingleObserver<Boolean>() {
 
@@ -255,7 +256,7 @@ public class LiveWallpaperService extends WallpaperService {
                             if (((WallpaperInfoRequest) currentWallpaperInfoRequest).requestId == WallpaperInfoRequest.GET_CURRENT_WALLPAPER) {
                                 LiveWallpaperObservable.
                                         getInstance().
-                                        publishData(new WallpaperInfoData(LiveWallpaperUtils.getUriToResource(getApplicationContext(), ((WallpaperResourceImage) currentWallpaperResourceImage).resId)));
+                                    doNext(new WallpaperInfoData(LiveWallpaperUtils.getUriToResource(getApplicationContext(), ((WallpaperResourceImage) currentWallpaperResourceImage).resId)));
                             }
 //                        }
                         disposable.dispose();
@@ -285,19 +286,19 @@ public class LiveWallpaperService extends WallpaperService {
             editor.commit();
         }
 
-        private Observer<DataItem> getLocalObserver() {
-
-            Observer<DataItem> observer = new Observer<DataItem>() {
-                Disposable dis;
-                @Override
-                public void onSubscribe(Disposable d) {
-                    dis = d;
-                }
-
-                @Override
-                public void onNext(final DataItem res) {
-                    Log.i(LiveWallpaperUtils.TAG, "LiveWallpaperService::onNext Setting wallpaper, disposable = " + dis.isDisposed());
-
+//        private Observer<DataItem> getLocalObserver() {
+//
+//            Observer<DataItem> observer = new Observer<DataItem>() {
+//                Disposable dis;
+//                @Override
+//                public void onSubscribe(Disposable d) {
+//                    dis = d;
+//                }
+//
+//                @Override
+//                public void onNext(final DataItem res) {
+//                    Log.i(LiveWallpaperUtils.TAG, "LiveWallpaperService::onNext Setting wallpaper, disposable = " + dis.isDisposed());
+//
 //                    if (res instanceof WallpaperResourceImage) {
 //
 //                        Log.i(LiveWallpaperUtils.TAG, "LiveWallpaperService::onNext, WallpaperResourceImage");
@@ -330,22 +331,22 @@ public class LiveWallpaperService extends WallpaperService {
 //                            }
 //                        }
 //                    }
-
-                }
-
-                @Override
-                public void onError(Throwable e) {
-
-                }
-
-                @Override
-                public void onComplete() {
-                    dis.dispose();
-                    Log.i(LiveWallpaperUtils.TAG, "LiveWallpaperService:: onComplete Wallpaper completed, disposable = " + dis.isDisposed());
-                }
-            };
-            return observer;
-        }
+//
+//                }
+//
+//                @Override
+//                public void onError(Throwable e) {
+//
+//                }
+//
+//                @Override
+//                public void onComplete() {
+//                    dis.dispose();
+//                    Log.i(LiveWallpaperUtils.TAG, "LiveWallpaperService:: onComplete Wallpaper completed, disposable = " + dis.isDisposed());
+//                }
+//            };
+//            return observer;
+//        }
     }
 }
 
