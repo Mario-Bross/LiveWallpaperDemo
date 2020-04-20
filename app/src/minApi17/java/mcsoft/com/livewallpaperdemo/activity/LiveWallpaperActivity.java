@@ -1,10 +1,8 @@
 package mcsoft.com.livewallpaperdemo.activity;
 
-import android.app.WallpaperInfo;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,8 +10,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import org.reactivestreams.Subscription;
 
 import java.io.IOException;
 
@@ -25,7 +21,6 @@ import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 //import io.reactivex.subjects.Subject;
-import io.reactivex.functions.Consumer;
 import mcsoft.com.livewallpaperdemo.R;
 import mcsoft.com.livewallpaperdemo.data.DataItem;
 import mcsoft.com.livewallpaperdemo.data.Message;
@@ -74,7 +69,7 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
         versionType.setText("version: API 17");
         setListeners();
         subscribe();
-        LiveWallpaperObservable.getInstance().publishData(new WallpaperInfoRequest(WallpaperInfoRequest.GET_CURRENT_WALLPAPER));
+        LiveWallpaperObservable.getInstance().doNext(new WallpaperInfoRequest(WallpaperInfoRequest.GET_CURRENT_WALLPAPER));
         setButtonTitle();
     }
 
@@ -95,13 +90,8 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
 
     private void subscribe() {
         observer = getLocalObserver();
-        observable = LiveWallpaperObservable.getInstance().getObservable();
-//        subject = LiveWallpaperObservable.getInstance().getSubject();
+        observable = LiveWallpaperObservable.getInstance().listenToObservable();
         observable.subscribe(observer);
-        Subscription s;
-        Disposable dis = Observable.just(1).subscribe();
-        Consumer c;
-
     }
 
     private Observer<DataItem> getLocalObserver() {
@@ -184,11 +174,11 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
                 if (LiveWallpaperUtils.isWallpaperActive(getApplicationContext()) == true) {
                     int id = v.getId();
                     if (id == R.id.wallpaper1)
-                        LiveWallpaperObservable.getInstance().publishData(new WallpaperResourceImage(R.drawable.wallpaper1));
+                        LiveWallpaperObservable.getInstance().doNext(new WallpaperResourceImage(R.drawable.wallpaper1));
                     if (id == R.id.wallpaper2)
-                        LiveWallpaperObservable.getInstance().publishData(new WallpaperResourceImage(R.drawable.wallpaper2));
+                        LiveWallpaperObservable.getInstance().doNext(new WallpaperResourceImage(R.drawable.wallpaper2));
                     if (id == R.id.wallpaper3)
-                        LiveWallpaperObservable.getInstance().publishData(new WallpaperResourceImage(R.drawable.wallpaper3));
+                        LiveWallpaperObservable.getInstance().doNext(new WallpaperResourceImage(R.drawable.wallpaper3));
                 }
             }
         };
@@ -223,7 +213,7 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
             Log.d(LiveWallpaperUtils.TAG, "onActivityResult code OK");
             subscribe();
             setButtonTitle();
-            LiveWallpaperObservable.getInstance().publishData(new WallpaperResourceImage(R.drawable.wallpaper1));
+            LiveWallpaperObservable.getInstance().doNext(new WallpaperResourceImage(R.drawable.wallpaper1));
         }
     }
 
