@@ -26,6 +26,7 @@ public class LiveWallpaperObservable {
     private PublishSubject<DataItem> publisher;
 
     private LiveWallpaperObservable() {
+        publisher = PublishSubject.create();
     }
 
     /* As Observable */
@@ -35,7 +36,6 @@ public class LiveWallpaperObservable {
         }
         return publisher;
     }
-
 
     /* As Observer */
     public void doNext(DataItem res) {
