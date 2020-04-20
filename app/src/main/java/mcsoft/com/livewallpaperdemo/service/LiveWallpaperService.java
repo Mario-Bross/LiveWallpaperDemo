@@ -7,8 +7,8 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.service.wallpaper.WallpaperService;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -17,7 +17,6 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
 import io.reactivex.Observable;
-import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
@@ -286,67 +285,6 @@ public class LiveWallpaperService extends WallpaperService {
             editor.commit();
         }
 
-//        private Observer<DataItem> getLocalObserver() {
-//
-//            Observer<DataItem> observer = new Observer<DataItem>() {
-//                Disposable dis;
-//                @Override
-//                public void onSubscribe(Disposable d) {
-//                    dis = d;
-//                }
-//
-//                @Override
-//                public void onNext(final DataItem res) {
-//                    Log.i(LiveWallpaperUtils.TAG, "LiveWallpaperService::onNext Setting wallpaper, disposable = " + dis.isDisposed());
-//
-//                    if (res instanceof WallpaperResourceImage) {
-//
-//                        Log.i(LiveWallpaperUtils.TAG, "LiveWallpaperService::onNext, WallpaperResourceImage");
-//                        loadWallpaper(((WallpaperResourceImage) res).resId);
-//                        // Save wallpaper resID
-//                        currentWallpaperResourceImage = new WallpaperResourceImage(((WallpaperResourceImage) res).resId);
-//
-//                        // Send Message
-//                        LiveWallpaperObservable.
-//                                getInstance().
-//                                publishData(new Message("Wallpaer changed succesfully"));
-//
-//                        // Inform other services
-//                        LiveWallpaperObservable.
-//                                getInstance().
-//                                publishData(new WallpaperInfoData(LiveWallpaperUtils.getUriToResource(getApplicationContext(), ((WallpaperResourceImage) res).resId)));
-//
-//                        // Save current wallpaper in SharedPref (used to restore after reboot )
-//                        saveWallpaperInSharedPref((WallpaperResourceImage) res);
-//                    }
-
-//                    if (res instanceof WallpaperInfoRequest) {
-//                        Log.i(LiveWallpaperUtils.TAG, "LiveWallpaperService::onNext, WallpaperInfoRequest");
-//                        if (currentWallpaper != null) {
-//                            Log.i(LiveWallpaperUtils.TAG, "LiveWallpaperService::onNext, WallpaperInfoRequest currentWallpaer not null");
-//                            if (((WallpaperInfoRequest) res).requestId == WallpaperInfoRequest.GET_CURRENT_WALLPAPER) {
-//                                LiveWallpaperObservable.
-//                                        getInstance().
-//                                        publishData(new WallpaperInfoData(LiveWallpaperUtils.getUriToResource(getApplicationContext(), ((WallpaperResourceImage) currentWallpaper).resId)));
-//                            }
-//                        }
-//                    }
-//
-//                }
-//
-//                @Override
-//                public void onError(Throwable e) {
-//
-//                }
-//
-//                @Override
-//                public void onComplete() {
-//                    dis.dispose();
-//                    Log.i(LiveWallpaperUtils.TAG, "LiveWallpaperService:: onComplete Wallpaper completed, disposable = " + dis.isDisposed());
-//                }
-//            };
-//            return observer;
-//        }
     }
 }
 
