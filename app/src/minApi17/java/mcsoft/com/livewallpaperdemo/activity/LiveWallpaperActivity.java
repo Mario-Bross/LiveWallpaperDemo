@@ -14,7 +14,7 @@ import android.widget.TextView;
 import java.io.IOException;
 
 
-
+import androidx.work.WorkManager;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
@@ -27,6 +27,7 @@ import mcsoft.com.livewallpaperdemo.data.Message;
 import mcsoft.com.livewallpaperdemo.data.WallpaperInfoRequest;
 import mcsoft.com.livewallpaperdemo.data.WallpaperResourceImage;
 import mcsoft.com.livewallpaperdemo.data.WallpaperInfoData;
+import mcsoft.com.livewallpaperdemo.scheduler.LiveWallpaperScheduler;
 import mcsoft.com.livewallpaperdemo.service.LiveWallpaperService;
 import mcsoft.com.livewallpaperdemo.utils.GlideApp;
 import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperObservable;
@@ -214,6 +215,7 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
             subscribe();
             setButtonTitle();
             LiveWallpaperObservable.getInstance().doNext(new WallpaperResourceImage(R.drawable.wallpaper1));
+            enableWallpaperScheduler();
         }
     }
 
@@ -230,11 +232,16 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
     }
 
     private void enableWallpaperScheduler() {
-
+        boolean isWorking = LiveWallpaperScheduler.getInstance().isSchedulerRunning(getApplicationContext());
+        if (isWorking == true) {
+            Log.d(LiveWallpaperUtils.TAG, "Scheduler is working");
+        } else {
+            Log.d(LiveWallpaperUtils.TAG, "Scheduler is not working");
+        }
     }
 
     private void disableWallpaperScheduler() {
-
+        WorkManager workManager = WorkManager.getInstance(this);
     }
 
 }
