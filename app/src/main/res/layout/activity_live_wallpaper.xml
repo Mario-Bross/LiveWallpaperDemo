@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.LiveWallpaperActivity">
+    android:fillViewport="true"
+    >
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".activity.LiveWallpaperActivity"
+        >
 
-    <include layout="@layout/version_type_view" />
+        <include layout="@layout/version_type_view" />
 
     <Button
         android:id="@+id/enable_wallpaper_button"
@@ -19,7 +27,9 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_version_type"/>
+        app:layout_constraintTop_toBottomOf="@+id/tv_version_type"
+        />
+        
 
     <Button
         android:id="@+id/wallpaper1"
@@ -31,7 +41,8 @@
         app:layout_constraintEnd_toStartOf="@+id/wallpaper2"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider1"/>
+        app:layout_constraintTop_toBottomOf="@+id/divider1"
+        />
 
     <Button
         android:id="@+id/wallpaper2"
@@ -80,23 +91,24 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/wallpaper2"/>
+        app:layout_constraintTop_toBottomOf="@+id/wallpaper2"
+        />
 
+        <ImageView
 
-    <ImageView
+            android:id="@+id/wallpaperPreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="8dp"
+            android:scaleType="center"
 
-        android:id="@+id/wallpaperPreview"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_margin="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider2"
+            tools:src="@drawable/ic_launcher_background"
 
-        android:scaleType="center"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider2"
-        app:srcCompat="@drawable/ic_launcher_background" />
+            />
 
-<!--    <include layout="@layout/wallpaper_preview" /> -->
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
