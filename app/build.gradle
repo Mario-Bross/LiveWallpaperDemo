@@ -93,6 +93,10 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
 
+    // Work Manager
+    def work_manager_version = "2.3.4"
+    implementation "androidx.work:work-runtime:$work_manager_version"
+
     // ButterKnife
     implementation 'com.jakewharton:butterknife:10.2.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.1'

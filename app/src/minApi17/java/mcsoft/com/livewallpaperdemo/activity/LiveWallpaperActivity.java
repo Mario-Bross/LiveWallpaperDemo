@@ -229,4 +229,12 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
         }
     }
 
+    private void enableWallpaperScheduler() {
+
+    }
+
+    private void disableWallpaperScheduler() {
+
+    }
+
 }
