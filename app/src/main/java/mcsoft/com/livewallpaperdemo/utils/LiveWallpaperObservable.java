@@ -16,7 +16,8 @@ import mcsoft.com.livewallpaperdemo.service.LiveWallpaperService;
 public class LiveWallpaperObservable {
 
     private static LiveWallpaperObservable instance;
-    public static LiveWallpaperObservable getInstance() {
+
+    public static synchronized LiveWallpaperObservable getInstance() {
         if (instance == null) {
             instance = new LiveWallpaperObservable();
         }

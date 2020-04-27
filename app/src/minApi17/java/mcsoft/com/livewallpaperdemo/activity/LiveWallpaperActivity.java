@@ -1,5 +1,6 @@
 package mcsoft.com.livewallpaperdemo.activity;
 
+import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -46,6 +47,9 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
     @BindView(R.id.enable_wallpaper_button)
     Button enableButton;
 
+    @BindView(R.id.enable_scheduler)
+    Button enableScheduler;
+
     @BindView(R.id.wallpaper1)
     Button enableWallpaper1;
 
@@ -71,7 +75,8 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
         setListeners();
         subscribe();
         LiveWallpaperObservable.getInstance().doNext(new WallpaperInfoRequest(WallpaperInfoRequest.GET_CURRENT_WALLPAPER));
-        setButtonTitle();
+        setEnableWallpaerButtonTitle();
+        setEnableSchedulerButtonTitle();
     }
 
     @Override
@@ -84,6 +89,7 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
 
     private void setListeners() {
         enableButton.setOnClickListener(enableWallpaperListener());
+        enableScheduler.setOnClickListener(enableSchedulerListener());
         enableWallpaper1.setOnClickListener(setWallpaper());
         enableWallpaper2.setOnClickListener(setWallpaper());
         enableWallpaper3.setOnClickListener(setWallpaper());
@@ -106,12 +112,13 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
 
             @Override
             public void onNext(DataItem res) {
- //               Log.i(LiveWallpaperUtils.TAG, "LiveWallpaperActivity::observer::onNext, Token type: " + res.getClass().getName());
                 if (res instanceof Message) {
                     Log.i(LiveWallpaperUtils.TAG, "LiveWallpaperActivity::Message Token");
+                    Log.i(LiveWallpaperUtils.TAG, "Message: " + ((Message) res).msg);
                 }
                 if (res instanceof WallpaperInfoData) {
                     Log.i(LiveWallpaperUtils.TAG, "LiveWallpaperActivity::WallpaperInfoData Token");
+                    Log.i(LiveWallpaperUtils.TAG, "URI: " + ((WallpaperInfoData) res).imageUri);
                     loadPreview((WallpaperInfoData) res);
                 }
             }
@@ -133,12 +140,17 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
     private void loadPreview (WallpaperInfoData wallpaper) {
 
         Log.i(LiveWallpaperUtils.TAG, "Loading preview");
-        GlideApp.
-                with(getApplicationContext()).
-                asBitmap().
-                load(wallpaper.imageUri).
-                centerInside().
-                into(wallpaperPreview);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                GlideApp.
+                    with(getApplicationContext()).
+                    asBitmap().
+                    load(wallpaper.imageUri).
+                    fitCenter().
+                    into(wallpaperPreview);
+            }
+        });
     }
 
     private void loadStaticWallpaperPreview() {
@@ -151,6 +163,26 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
                 .load(wallpaperDrawable)
                 .centerInside()
                 .into(wallpaperPreview);
+    }
+
+    private View.OnClickListener enableSchedulerListener() {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(LiveWallpaperUtils.TAG, "enableScheduler");
+                boolean isWorking = LiveWallpaperScheduler.getInstance().isSchedulerRunning(getApplicationContext());
+                if (LiveWallpaperUtils.isWallpaperActive(getApplicationContext()) == true) {
+                    if (isWorking == true) {
+                        disableWallpaperScheduler();
+                    } else {
+                        enableWallpaperScheduler();
+                    }
+                } else {
+                    if (isWorking == true) {
+                        disableWallpaperScheduler();                    }
+                }
+            }
+        };
     }
 
     private View.OnClickListener enableWallpaperListener() {
@@ -185,15 +217,25 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
         };
     }
 
-    private void setButtonTitle() {
 
-        Log.i(LiveWallpaperUtils.TAG, "setButtonTitle");
+    private void setEnableWallpaerButtonTitle() {
+        Log.i(LiveWallpaperUtils.TAG, "setEnableWallpaerButtonTitle");
         if (LiveWallpaperUtils.isWallpaperActive(getApplicationContext()) == true) {
             enableButton.setText("Disable Wallpaper");
 
         } else {
             enableButton.setText("Enable Wallpaper");
             loadStaticWallpaperPreview();
+        }
+    }
+
+    private void setEnableSchedulerButtonTitle() {
+        Log.i(LiveWallpaperUtils.TAG, "setEnableSchedulerButtonTitle");
+        boolean isWorking = LiveWallpaperScheduler.getInstance().isSchedulerRunning(getApplicationContext());
+        if (isWorking == true) {
+            enableScheduler.setText("Disable Scheduler");
+        } else {
+            enableScheduler.setText("Enable Scheduler");
         }
     }
 
@@ -213,9 +255,8 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
         if (requestCode == CHANGE_WALLPAPER_STATUS_CODE && LiveWallpaperUtils.isWallpaperActive(getApplicationContext())) {
             Log.d(LiveWallpaperUtils.TAG, "onActivityResult code OK");
             subscribe();
-            setButtonTitle();
+            setEnableWallpaerButtonTitle();
             LiveWallpaperObservable.getInstance().doNext(new WallpaperResourceImage(R.drawable.wallpaper1));
-            enableWallpaperScheduler();
         }
     }
 
@@ -224,7 +265,7 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
         WallpaperManager wpm = (WallpaperManager) getSystemService(WALLPAPER_SERVICE);
         try {
             wpm.clear();
-            setButtonTitle();
+            setEnableWallpaerButtonTitle();
         } catch (IOException e) {
             e.printStackTrace();
             Log.d(LiveWallpaperUtils.TAG, "Live Wallpaper cannot be disabled");
@@ -233,15 +274,20 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
 
     private void enableWallpaperScheduler() {
         boolean isWorking = LiveWallpaperScheduler.getInstance().isSchedulerRunning(getApplicationContext());
-        if (isWorking == true) {
-            Log.d(LiveWallpaperUtils.TAG, "Scheduler is working");
-        } else {
+        if (isWorking == false) {
             Log.d(LiveWallpaperUtils.TAG, "Scheduler is not working");
+            LiveWallpaperScheduler.getInstance().startScheduler(getApplicationContext());
+            setEnableSchedulerButtonTitle();
         }
     }
 
     private void disableWallpaperScheduler() {
-        WorkManager workManager = WorkManager.getInstance(this);
+        boolean isWorking = LiveWallpaperScheduler.getInstance().isSchedulerRunning(getApplicationContext());
+        if (isWorking == true) {
+            Log.d(LiveWallpaperUtils.TAG, "Scheduler is working");
+            LiveWallpaperScheduler.getInstance().stopScheduler(getApplicationContext());
+            setEnableSchedulerButtonTitle();
+        }
     }
 
 }

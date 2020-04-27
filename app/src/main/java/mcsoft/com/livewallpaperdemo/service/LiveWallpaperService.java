@@ -33,10 +33,6 @@ import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperUtils;
 
 public class LiveWallpaperService extends WallpaperService {
 
-
-    private final static String TAG = LiveWallpaperService.class.getCanonicalName();
-
-
     @Override
     public void onCreate() {
     }
@@ -61,7 +57,6 @@ public class LiveWallpaperService extends WallpaperService {
             super.onCreate(surfaceHolder);
             // TODO Handle initialization.
             // Preview
-//            loadWallpaper(R.drawable.wallpaper1);
             if (isPreview() == false) {
                 doSubscription();
             }
@@ -109,7 +104,7 @@ public class LiveWallpaperService extends WallpaperService {
         }
 
 
-        private void loadWallpaper(Integer res) {
+        private synchronized void loadWallpaper(Integer res) {
 
             Context context = getApplicationContext();
 
@@ -121,7 +116,7 @@ public class LiveWallpaperService extends WallpaperService {
 
         private void drawWallpaper(Uri imageUri) {
             GlideApp.
-                with(getApplicationContext()).
+                with(getApplication()).
                 asBitmap().
                 override(getDesiredMinimumWidth(),getDesiredMinimumHeight()).
                 load(imageUri).
@@ -194,12 +189,10 @@ public class LiveWallpaperService extends WallpaperService {
                         Log.i(LiveWallpaperUtils.TAG, "observeWallpaperResourceImage::SingleObserver::onSuccess");
                         loadWallpaper(((WallpaperResourceImage) currentWallpaperResourceImage).resId);
                         // Send Message
-                        LiveWallpaperObservable.
-                                getInstance().
+                        LiveWallpaperObservable.getInstance().
                             doNext(new Message("Wallpaer changed succesfully"));
                         // Send WallpaperInfo
-                        LiveWallpaperObservable.
-                                getInstance().
+                        LiveWallpaperObservable.getInstance().
                             doNext(new WallpaperInfoData(LiveWallpaperUtils.getUriToResource(getApplicationContext(), ((WallpaperResourceImage) currentWallpaperResourceImage).resId)));
                         saveWallpaperInSharedPref((WallpaperResourceImage) currentWallpaperResourceImage);
                         disposable.dispose();
@@ -250,14 +243,11 @@ public class LiveWallpaperService extends WallpaperService {
                 public void onSuccess(Boolean aBoolean) {
                     if (aBoolean == true) {
                         Log.i(LiveWallpaperUtils.TAG, "observeWallpaperInfoRequest::onNext, WallpaperInfoRequest");
-//                        if (currentWallpaperResourceImage != null) {
                             Log.i(LiveWallpaperUtils.TAG, "observeWallpaperInfoRequest::onSuccess, WallpaperInfoRequest currentWallpaer not null");
                             if (((WallpaperInfoRequest) currentWallpaperInfoRequest).requestId == WallpaperInfoRequest.GET_CURRENT_WALLPAPER) {
-                                LiveWallpaperObservable.
-                                        getInstance().
+                                LiveWallpaperObservable.getInstance().
                                     doNext(new WallpaperInfoData(LiveWallpaperUtils.getUriToResource(getApplicationContext(), ((WallpaperResourceImage) currentWallpaperResourceImage).resId)));
                             }
-//                        }
                         disposable.dispose();
                         getWallpaperInfoRequestObservable().subscribe(this);
                     }
