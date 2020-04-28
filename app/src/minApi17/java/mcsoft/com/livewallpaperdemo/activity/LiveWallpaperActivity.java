@@ -5,7 +5,10 @@ import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -38,6 +41,7 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
 
     private final static int CHANGE_WALLPAPER_STATUS_CODE = 1;
     private final static String TAG = LiveWallpaperActivity.class.getCanonicalName();
+    private final static int CODE_WRITE_SETTINGS_PERMISSION = 111;
 
     private Observable<DataItem> observable;
     private Observer<DataItem> observer;
@@ -72,11 +76,23 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
         setContentView(R.layout.activity_live_wallpaper);
         ButterKnife.bind(this);
         versionType.setText("version: API 17");
+        checkWritePerrmision();
         setListeners();
         subscribe();
         LiveWallpaperObservable.getInstance().doNext(new WallpaperInfoRequest(WallpaperInfoRequest.GET_CURRENT_WALLPAPER));
         setEnableWallpaerButtonTitle();
         setEnableSchedulerButtonTitle();
+    }
+
+    private void checkWritePerrmision() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Settings.System.canWrite(this) == false) {
+                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                intent.setData(Uri.parse("package:" + this.getPackageName()));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivityForResult(intent, LiveWallpaperActivity.CODE_WRITE_SETTINGS_PERMISSION);
+            }
+        }
     }
 
     @Override
