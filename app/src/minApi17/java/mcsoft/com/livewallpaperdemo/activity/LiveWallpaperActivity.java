@@ -1,9 +1,11 @@
 package mcsoft.com.livewallpaperdemo.activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -14,10 +16,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.work.WorkManager;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -25,6 +30,7 @@ import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 //import io.reactivex.subjects.Subject;
+import io.reactivex.observers.TestObserver;
 import mcsoft.com.livewallpaperdemo.R;
 import mcsoft.com.livewallpaperdemo.data.DataItem;
 import mcsoft.com.livewallpaperdemo.data.Message;
@@ -42,6 +48,7 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
     private final static int CHANGE_WALLPAPER_STATUS_CODE = 1;
     private final static String TAG = LiveWallpaperActivity.class.getCanonicalName();
     private final static int CODE_WRITE_SETTINGS_PERMISSION = 111;
+    private final static int CODE_READ_EXTERNAL_STORE_PERMISSION = 112;
 
     private Observable<DataItem> observable;
     private Observer<DataItem> observer;
@@ -76,7 +83,8 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
         setContentView(R.layout.activity_live_wallpaper);
         ButterKnife.bind(this);
         versionType.setText("version: API 17");
-        checkWritePerrmision();
+        checkReadExternalStoragePermission();
+        checkWritePermission();
         setListeners();
         subscribe();
         LiveWallpaperObservable.getInstance().doNext(new WallpaperInfoRequest(WallpaperInfoRequest.GET_CURRENT_WALLPAPER));
@@ -84,14 +92,48 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
         setEnableSchedulerButtonTitle();
     }
 
-    private void checkWritePerrmision() {
+    // TODO: Add dialog for explanation
+    private void checkWritePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (Settings.System.canWrite(this) == false) {
                 Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
                 intent.setData(Uri.parse("package:" + this.getPackageName()));
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivityForResult(intent, LiveWallpaperActivity.CODE_WRITE_SETTINGS_PERMISSION);
+
             }
+        }
+    }
+
+    private void checkReadExternalStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+            if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, CODE_READ_EXTERNAL_STORE_PERMISSION);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+
+        switch (requestCode) {
+            case CODE_READ_EXTERNAL_STORE_PERMISSION: {
+                if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    Toast.makeText(this, "READ EXTERNAL STORE Permission granted", Toast.LENGTH_LONG).show();
+                }
+                break;
+            }
+
+            case CODE_WRITE_SETTINGS_PERMISSION: {
+                if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    Toast.makeText(this, "WRITE SETTINGS Permission granted", Toast.LENGTH_LONG).show();
+                }
+                break;
+            }
+
+            default:
+                break;
         }
     }
 
