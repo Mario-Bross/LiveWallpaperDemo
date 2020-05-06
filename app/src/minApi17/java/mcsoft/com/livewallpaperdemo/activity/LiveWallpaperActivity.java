@@ -2,6 +2,7 @@ package mcsoft.com.livewallpaperdemo.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -42,13 +43,14 @@ import mcsoft.com.livewallpaperdemo.service.LiveWallpaperService;
 import mcsoft.com.livewallpaperdemo.utils.GlideApp;
 import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperObservable;
 import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperUtils;
+import mcsoft.com.livewallpaperdemo.utils.PermissionDialogBuilder;
 
 public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
 
     private final static int CHANGE_WALLPAPER_STATUS_CODE = 1;
     private final static String TAG = LiveWallpaperActivity.class.getCanonicalName();
-    private final static int CODE_WRITE_SETTINGS_PERMISSION = 111;
-    private final static int CODE_READ_EXTERNAL_STORE_PERMISSION = 112;
+    public final static int CODE_WRITE_SETTINGS_PERMISSION = 111;
+    public final static int CODE_READ_EXTERNAL_STORE_PERMISSION = 112;
 
     private Observable<DataItem> observable;
     private Observer<DataItem> observer;
@@ -94,13 +96,19 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
 
     // TODO: Add dialog for explanation
     private void checkWritePermission() {
+
+
+
+
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (Settings.System.canWrite(this) == false) {
-                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
-                intent.setData(Uri.parse("package:" + this.getPackageName()));
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivityForResult(intent, LiveWallpaperActivity.CODE_WRITE_SETTINGS_PERMISSION);
-
+                new PermissionDialogBuilder.Build()
+                    .with(this)
+                    .listener(new PermissionDialogBuilder.OnClickListener1(this))
+                    .title("Ask for permission")
+                    .message("In order to use this application you have to allow to modify system settings by this application.")
+                    .show(getSupportFragmentManager());
             }
         }
     }
@@ -310,12 +318,27 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(LiveWallpaperUtils.TAG, "onActivityResult");
+
+        if (requestCode == CODE_WRITE_SETTINGS_PERMISSION) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (Settings.System.canWrite(this) == false) {
+                    new PermissionDialogBuilder.Build()
+                        .with(this)
+                        .listener(new PermissionDialogBuilder.OnClickListener2(this))
+                        .title("Error")
+                        .message("You have to allow to modify system settings by this application.")
+                        .show(getSupportFragmentManager());
+                }
+            }
+        }
+
         if (requestCode == CHANGE_WALLPAPER_STATUS_CODE && LiveWallpaperUtils.isWallpaperActive(getApplicationContext())) {
             Log.d(LiveWallpaperUtils.TAG, "onActivityResult code OK");
             subscribe();
             setEnableWallpaerButtonTitle();
             LiveWallpaperObservable.getInstance().doNext(new WallpaperResourceImage(R.drawable.wallpaper1));
         }
+
     }
 
 
