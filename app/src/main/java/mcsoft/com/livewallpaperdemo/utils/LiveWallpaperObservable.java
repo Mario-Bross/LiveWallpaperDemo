@@ -2,15 +2,14 @@ package mcsoft.com.livewallpaperdemo.utils;
 
 import android.util.Log;
 
+import java.util.function.Consumer;
+
 import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
-import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 import io.reactivex.subjects.PublishSubject;
-import io.reactivex.subjects.Subject;
 import mcsoft.com.livewallpaperdemo.data.DataItem;
-import mcsoft.com.livewallpaperdemo.data.Message;
-import mcsoft.com.livewallpaperdemo.service.LiveWallpaperService;
+import mcsoft.com.livewallpaperdemo.data.StringMessageToken;
 
 // TODO: Rename this class to LiveWallpaperDataBus
 public class LiveWallpaperObservable {
@@ -54,7 +53,29 @@ public class LiveWallpaperObservable {
 
 
     private void test() {
-        publisher.single(new Message(""));
+        publisher.single(new StringMessageToken(""));
     }
+
+//    public <T> void register(Class<T> eventClass, Consumer<T> action) {
+//        publisher
+//            .filter(new Predicate<Class>() {
+//                @Override
+//                public boolean test(Class aClass) throws Exception {
+//                    return aClass.getClass().equals(eventClass);
+//                }
+//            })
+
+
+//                @Override
+//                public boolean test(DataItem dataItem) throws Exception {
+//                    return dataItem.getClass().equals(eventClass);
+//                }
+//            })
+
+//            .filter(event -> event.getClass().equals(eventClass))
+//            .map (obj -> (T)obj)
+//            .subscribe((Observer<? super T>) action);
+
+
 
 }

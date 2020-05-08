@@ -11,6 +11,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
 import mcsoft.com.livewallpaperdemo.activity.LiveWallpaperActivity;
+import mcsoft.com.livewallpaperdemo.data.DialogWriteSettingInfo;
 
 public class PermissionDialogBuilder extends DialogFragment {
 
@@ -19,28 +20,30 @@ public class PermissionDialogBuilder extends DialogFragment {
     private Context builderContext;
     private DialogInterface.OnClickListener mListener;
 
-    public static class OnClickListener1 implements DialogInterface.OnClickListener {
+    public static class WriteSettingsInfoListener implements DialogInterface.OnClickListener {
 
         private Context mContext;
 
-        public OnClickListener1(Context context) {
+        public WriteSettingsInfoListener(Context context) {
             this.mContext = context;
         }
 
         @Override
         public void onClick(DialogInterface dialog, int which) {
-            Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
-            intent.setData(Uri.parse("package:" + this.mContext.getPackageName()));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            ((LiveWallpaperActivity)this.mContext).startActivityForResult(intent, LiveWallpaperActivity.CODE_WRITE_SETTINGS_PERMISSION);
+            RxDataBus.getInstance().post(new DialogWriteSettingInfo());
+
+//            Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
+//            intent.setData(Uri.parse("package:" + this.mContext.getPackageName()));
+//            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            ((LiveWallpaperActivity)this.mContext).startActivityForResult(intent, LiveWallpaperActivity.CODE_WRITE_SETTINGS_PERMISSION);
         }
     }
 
-    public static class OnClickListener2 implements DialogInterface.OnClickListener {
+    public static class WriteSettingsErrorListener implements DialogInterface.OnClickListener {
 
         private Context mContext;
 
-        public OnClickListener2(Context context) {
+        public WriteSettingsErrorListener(Context context) {
             this.mContext = context;
         }
 

@@ -3,9 +3,9 @@ package mcsoft.com.livewallpaperdemo.data;
 
 import android.net.Uri;
 
-public class WallpaperInfoData implements DataItem {
+public class WallpaperUriToken implements DataItem {
     public Uri imageUri;
-    public WallpaperInfoData(Uri uri) {
+    public WallpaperUriToken(Uri uri) {
         this.imageUri = uri;
     }
 }

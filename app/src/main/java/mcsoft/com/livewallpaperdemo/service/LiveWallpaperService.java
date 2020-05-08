@@ -17,16 +17,19 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
 import io.reactivex.Observable;
+import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import mcsoft.com.livewallpaperdemo.R;
 import mcsoft.com.livewallpaperdemo.data.DataItem;
-import mcsoft.com.livewallpaperdemo.data.Message;
-import mcsoft.com.livewallpaperdemo.data.WallpaperInfoRequest;
-import mcsoft.com.livewallpaperdemo.data.WallpaperResourceImage;
-import mcsoft.com.livewallpaperdemo.data.WallpaperInfoData;
+import mcsoft.com.livewallpaperdemo.data.StringMessageToken;
+import mcsoft.com.livewallpaperdemo.data.WallpaperInfoRequestToken;
+import mcsoft.com.livewallpaperdemo.data.WallpaperResourceImageToken;
+import mcsoft.com.livewallpaperdemo.data.WallpaperUriToken;
 import mcsoft.com.livewallpaperdemo.utils.GlideApp;
 import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperObservable;
 import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperUtils;
@@ -151,124 +154,205 @@ public class LiveWallpaperService extends WallpaperService {
                 });
         }
 
-        private Single<Boolean> getWallpaperResourceImageObservable() {
-
+        private void dispatcher() {
             // Subject - source of all events
+            //
             Observable<DataItem> subjectObservable  = LiveWallpaperObservable.getInstance().listenToObservable();
-
-            // Single emits true or false
-            Single<Boolean> wallpaperResourceImageObservable = subjectObservable.any(new Predicate<DataItem>() {
+            subjectObservable.subscribe(new Consumer<DataItem>() {
                 @Override
-                public boolean test(DataItem dataItem) throws Exception {
-                    if (dataItem instanceof WallpaperResourceImage) {
-                        currentWallpaperResourceImage = dataItem;
-                        return true;
-                    } else {
-                        return false;
+                public void accept(DataItem dataItem) throws Exception {
+                    if (dataItem instanceof WallpaperInfoRequestToken) {
+                        Single.just((WallpaperInfoRequestToken)dataItem).subscribe(observeWallpaperInfoRequestToken());
+                    } else if (dataItem instanceof WallpaperResourceImageToken) {
+                        Single.just((WallpaperResourceImageToken)dataItem).subscribe(observeWallpaperResourceImageToken());
                     }
                 }
             });
-            return wallpaperResourceImageObservable;
         }
 
+        private SingleObserver<WallpaperInfoRequestToken> observeWallpaperInfoRequestToken() {
+            SingleObserver<WallpaperInfoRequestToken> singleObserver = new SingleObserver<WallpaperInfoRequestToken>() {
 
-
-        private void observeWallpaperResourceImage() {
-
-            SingleObserver<Boolean>  wallpaperResourceImageObserver = (new SingleObserver<Boolean>() {
-                Disposable disposable;
                 @Override
                 public void onSubscribe(Disposable d) {
-                    Log.i(LiveWallpaperUtils.TAG, "observeWallpaperResourceImage::SingleObserver::onSubscribe");
-                    disposable = d;
                 }
 
                 @Override
-                public void onSuccess(Boolean aBoolean) {
-                    if (aBoolean == true) {
-                        Log.i(LiveWallpaperUtils.TAG, "observeWallpaperResourceImage::SingleObserver::onSuccess");
-                        loadWallpaper(((WallpaperResourceImage) currentWallpaperResourceImage).resId);
-                        // Send Message
-                        LiveWallpaperObservable.getInstance().
-                            doNext(new Message("Wallpaer changed succesfully"));
-                        // Send WallpaperInfo
-                        LiveWallpaperObservable.getInstance().
-                            doNext(new WallpaperInfoData(LiveWallpaperUtils.getUriToResource(getApplicationContext(), ((WallpaperResourceImage) currentWallpaperResourceImage).resId)));
-                        saveWallpaperInSharedPref((WallpaperResourceImage) currentWallpaperResourceImage);
-                        disposable.dispose();
-                        getWallpaperResourceImageObservable().subscribe(this);
+                public void onSuccess(WallpaperInfoRequestToken wallpaperInfoRequestToken) {
+                    Log.i(LiveWallpaperUtils.TAG, "observeWallpaperInfoRequest::onNext, WallpaperInfoRequest");
+                    Log.i(LiveWallpaperUtils.TAG, "observeWallpaperInfoRequest::onSuccess, WallpaperInfoRequest currentWallpaer not null");
+                    if (wallpaperInfoRequestToken.requestId == WallpaperInfoRequestToken.GET_CURRENT_WALLPAPER) {
+                        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(getApplicationContext().getString(R.string.shared_pref_name), Context.MODE_PRIVATE);
+                        int resId = sharedPreferences.getInt(getApplicationContext().getString(R.string.shared_pref_resource_id),0);
+                        if (resId != 0) {
+                            LiveWallpaperObservable.getInstance().
+                                doNext(new WallpaperUriToken(LiveWallpaperUtils.getUriToResource(getApplicationContext(),resId)));
+                        }
                     }
                 }
 
                 @Override
                 public void onError(Throwable e) {
-                    Log.i(LiveWallpaperUtils.TAG, "observeWallpaperResourceImage::SingleObserver::onError");
                 }
-            });
-            getWallpaperResourceImageObservable().subscribe(wallpaperResourceImageObserver);
+            };
+            return singleObserver;
         }
 
 
-        private Single<Boolean> getWallpaperInfoRequestObservable() {
-            // Subject - source of all events
-            Observable<DataItem> subjectObservable  = LiveWallpaperObservable.getInstance().listenToObservable();
-            // Single emits true or false
-            Single<Boolean> wallpaperInfoRequestObservable = subjectObservable.any(new Predicate<DataItem>() {
-                @Override
-                public boolean test(DataItem dataItem) throws Exception {
-                    if (dataItem instanceof WallpaperInfoRequest) {
-                        currentWallpaperInfoRequest = dataItem;
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-            });
-            return wallpaperInfoRequestObservable;
-        }
-
-        // Move to separate class
-        private void observeWallpaperInfoRequest() {
-            SingleObserver<Boolean>  wallpaperInfoRequestObserver = (new SingleObserver<Boolean>() {
-
-                Disposable disposable;
-
+        private SingleObserver<WallpaperResourceImageToken> observeWallpaperResourceImageToken() {
+            SingleObserver<WallpaperResourceImageToken> singleObserver = new SingleObserver<WallpaperResourceImageToken>() {
                 @Override
                 public void onSubscribe(Disposable d) {
-                    Log.i(LiveWallpaperUtils.TAG, "observeWallpaperInfoRequest::SingleObserver::onSubscribe");
-                    disposable = d;
+
                 }
 
                 @Override
-                public void onSuccess(Boolean aBoolean) {
-                    if (aBoolean == true) {
-                        Log.i(LiveWallpaperUtils.TAG, "observeWallpaperInfoRequest::onNext, WallpaperInfoRequest");
-                            Log.i(LiveWallpaperUtils.TAG, "observeWallpaperInfoRequest::onSuccess, WallpaperInfoRequest currentWallpaer not null");
-                            if (((WallpaperInfoRequest) currentWallpaperInfoRequest).requestId == WallpaperInfoRequest.GET_CURRENT_WALLPAPER) {
-                                LiveWallpaperObservable.getInstance().
-                                    doNext(new WallpaperInfoData(LiveWallpaperUtils.getUriToResource(getApplicationContext(), ((WallpaperResourceImage) currentWallpaperResourceImage).resId)));
-                            }
-                        disposable.dispose();
-                        getWallpaperInfoRequestObservable().subscribe(this);
-                    }
+                public void onSuccess(WallpaperResourceImageToken wallpaperResourceImageToken) {
+                    Log.i(LiveWallpaperUtils.TAG, "observeWallpaperResourceImage::SingleObserver::onSuccess");
+                    loadWallpaper(wallpaperResourceImageToken.resId);
+                    // Send Message
+                    LiveWallpaperObservable.getInstance().
+                        doNext(new StringMessageToken("Wallpaer changed succesfully"));
+
+                    LiveWallpaperObservable.getInstance().
+                        doNext(new WallpaperUriToken(LiveWallpaperUtils.getUriToResource(getApplicationContext(), wallpaperResourceImageToken.resId)));
+
+                    // Send WallpaperInfo
+                    saveWallpaperInSharedPref(wallpaperResourceImageToken);
                 }
 
                 @Override
                 public void onError(Throwable e) {
-                    Log.i(LiveWallpaperUtils.TAG, "observeWallpaperInfoRequest::SingleObserver::onError");
+
                 }
-            });
-            getWallpaperInfoRequestObservable().subscribe(wallpaperInfoRequestObserver);
+            };
+            return singleObserver;
         }
+
+
+
+
+
+
+
+//        private Single<Boolean> getWallpaperResourceImageObservable() {
+//
+//            // Subject - source of all events
+//            Observable<DataItem> subjectObservable  = LiveWallpaperObservable.getInstance().listenToObservable();
+//
+//            // Single emits true or false
+//            Single<Boolean> wallpaperResourceImageObservable = subjectObservable.any(new Predicate<DataItem>() {
+//                @Override
+//                public boolean test(DataItem dataItem) throws Exception {
+//                    if (dataItem instanceof WallpaperResourceImageToken) {
+//                        currentWallpaperResourceImage = dataItem;
+//                        return true;
+//                    } else {
+//                        return false;
+//                    }
+//                }
+//            });
+//            return wallpaperResourceImageObservable;
+//        }
+//
+//
+//
+//        private void observeWallpaperResourceImage() {
+//
+//            SingleObserver<Boolean>  wallpaperResourceImageObserver = (new SingleObserver<Boolean>() {
+//                Disposable disposable;
+//                @Override
+//                public void onSubscribe(Disposable d) {
+//                    Log.i(LiveWallpaperUtils.TAG, "observeWallpaperResourceImage::SingleObserver::onSubscribe");
+//                    disposable = d;
+//                }
+//
+//                @Override
+//                public void onSuccess(Boolean aBoolean) {
+//                    if (aBoolean == true) {
+//                        Log.i(LiveWallpaperUtils.TAG, "observeWallpaperResourceImage::SingleObserver::onSuccess");
+//                        loadWallpaper(((WallpaperResourceImageToken) currentWallpaperResourceImage).resId);
+//                        // Send Message
+//                        LiveWallpaperObservable.getInstance().
+//                            doNext(new StringMessageToken("Wallpaer changed succesfully"));
+//                        // Send WallpaperInfo
+//                        LiveWallpaperObservable.getInstance().
+//                            doNext(new WallpaperUriToken(LiveWallpaperUtils.getUriToResource(getApplicationContext(), ((WallpaperResourceImageToken) currentWallpaperResourceImage).resId)));
+//                        saveWallpaperInSharedPref((WallpaperResourceImageToken) currentWallpaperResourceImage);
+//                        disposable.dispose();
+//                        getWallpaperResourceImageObservable().subscribe(this);
+//                    }
+//                }
+//
+//                @Override
+//                public void onError(Throwable e) {
+//                    Log.i(LiveWallpaperUtils.TAG, "observeWallpaperResourceImage::SingleObserver::onError");
+//                }
+//            });
+//            getWallpaperResourceImageObservable().subscribe(wallpaperResourceImageObserver);
+//        }
+//
+//        private Single<Boolean> getWallpaperInfoRequestObservable() {
+//            // Subject - source of all events
+//            Observable<DataItem> subjectObservable  = LiveWallpaperObservable.getInstance().listenToObservable();
+//            // Single emits true or false
+//            Single<Boolean> wallpaperInfoRequestObservable = subjectObservable.any(new Predicate<DataItem>() {
+//                @Override
+//                public boolean test(DataItem dataItem) throws Exception {
+//                    if (dataItem instanceof WallpaperInfoRequestToken) {
+//                        currentWallpaperInfoRequest = dataItem;
+//                        return true;
+//                    } else {
+//                        return false;
+//                    }
+//                }
+//            });
+//            return wallpaperInfoRequestObservable;
+//        }
+//
+//        // Move to separate class
+//        private void observeWallpaperInfoRequest() {
+//            SingleObserver<Boolean>  wallpaperInfoRequestObserver = (new SingleObserver<Boolean>() {
+//
+//                Disposable disposable;
+//
+//                @Override
+//                public void onSubscribe(Disposable d) {
+//                    Log.i(LiveWallpaperUtils.TAG, "observeWallpaperInfoRequest::SingleObserver::onSubscribe");
+//                    disposable = d;
+//                }
+//
+//                @Override
+//                public void onSuccess(Boolean aBoolean) {
+//                    if (aBoolean == true) {
+//                        Log.i(LiveWallpaperUtils.TAG, "observeWallpaperInfoRequest::onNext, WallpaperInfoRequest");
+//                        Log.i(LiveWallpaperUtils.TAG, "observeWallpaperInfoRequest::onSuccess, WallpaperInfoRequest currentWallpaer not null");
+//                        if (((WallpaperInfoRequestToken) currentWallpaperInfoRequest).requestId == WallpaperInfoRequestToken.GET_CURRENT_WALLPAPER) {
+//                            LiveWallpaperObservable.getInstance().
+//                                doNext(new WallpaperUriToken(LiveWallpaperUtils.getUriToResource(getApplicationContext(), ((WallpaperResourceImageToken) currentWallpaperResourceImage).resId)));
+//                        }
+//                        disposable.dispose();
+//                        getWallpaperInfoRequestObservable().subscribe(this);
+//                    }
+//                }
+//
+//                @Override
+//                public void onError(Throwable e) {
+//                    Log.i(LiveWallpaperUtils.TAG, "observeWallpaperInfoRequest::SingleObserver::onError");
+//                }
+//            });
+//            getWallpaperInfoRequestObservable().subscribe(wallpaperInfoRequestObserver);
+//        }
 
         private void doSubscription() {
             if (isPreview() == false) {
-                observeWallpaperResourceImage();
-                observeWallpaperInfoRequest();
+                dispatcher();
+//                observeWallpaperResourceImage();
+//                observeWallpaperInfoRequest();
             }
         }
 
-        private void saveWallpaperInSharedPref(WallpaperResourceImage res) {
+        private void saveWallpaperInSharedPref(WallpaperResourceImageToken res) {
             SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.shared_pref_name), Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putInt(getString(R.string.shared_pref_resource_id), res.resId);

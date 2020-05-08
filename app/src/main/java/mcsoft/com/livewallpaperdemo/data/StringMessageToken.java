@@ -1,8 +1,8 @@
 package mcsoft.com.livewallpaperdemo.data;
 
-public class Message implements DataItem {
+public class StringMessageToken implements DataItem {
     public String msg;
-    public Message(String msg) {
+    public StringMessageToken(String msg) {
         this.msg = msg;
 
     }
