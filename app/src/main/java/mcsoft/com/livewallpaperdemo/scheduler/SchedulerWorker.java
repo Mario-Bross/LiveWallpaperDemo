@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 import mcsoft.com.livewallpaperdemo.data.WallpaperResourceImageToken;
-import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperObservable;
+import mcsoft.com.livewallpaperdemo.utils.RxDataBus;
 import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperUtils;
 
 
@@ -26,7 +26,7 @@ public class SchedulerWorker extends Worker {
         Log.i(LiveWallpaperUtils.TAG, "SchedulerWorker::doWork");
         Log.i(LiveWallpaperUtils.TAG, "***********************************+");
 
-        if (LiveWallpaperObservable.getInstance() != null) {
+        if (RxDataBus.getInstance() != null) {
             Random random = new Random();
             int randomInteger = random.nextInt(9)  + 1;
 
@@ -34,7 +34,7 @@ public class SchedulerWorker extends Worker {
             int resId = getApplicationContext().
                 getResources().
                 getIdentifier("wallpaper" + Integer.toString(randomInteger), "drawable", getApplicationContext().getPackageName());
-            LiveWallpaperObservable.getInstance().doNext(new WallpaperResourceImageToken(resId));
+            RxDataBus.getInstance().doNext(new WallpaperResourceImageToken(resId));
         }
         return Result.success();
     }

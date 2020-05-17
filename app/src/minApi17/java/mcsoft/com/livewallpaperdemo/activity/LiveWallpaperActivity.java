@@ -1,12 +1,9 @@
 package mcsoft.com.livewallpaperdemo.activity;
 
-import android.Manifest;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -15,24 +12,18 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.IOException;
-import java.util.function.Consumer;
 
 
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
 //import io.reactivex.subjects.Subject;
 import mcsoft.com.livewallpaperdemo.R;
 import mcsoft.com.livewallpaperdemo.data.DataItem;
-import mcsoft.com.livewallpaperdemo.data.DialogWriteSettingInfo;
 import mcsoft.com.livewallpaperdemo.data.StringMessageToken;
 import mcsoft.com.livewallpaperdemo.data.WallpaperInfoRequestToken;
 import mcsoft.com.livewallpaperdemo.data.WallpaperResourceImageToken;
@@ -40,10 +31,10 @@ import mcsoft.com.livewallpaperdemo.data.WallpaperUriToken;
 import mcsoft.com.livewallpaperdemo.scheduler.LiveWallpaperScheduler;
 import mcsoft.com.livewallpaperdemo.service.LiveWallpaperService;
 import mcsoft.com.livewallpaperdemo.utils.GlideApp;
-import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperObservable;
+import mcsoft.com.livewallpaperdemo.utils.PermissionUtils;
+import mcsoft.com.livewallpaperdemo.utils.RxDataBus;
 import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperUtils;
 import mcsoft.com.livewallpaperdemo.utils.PermissionDialogBuilder;
-import mcsoft.com.livewallpaperdemo.utils.RxDataBus;
 
 public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
 
@@ -79,127 +70,53 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
     ImageView wallpaperPreview;
 
 
+    private PermissionDialogBuilder permissionDialogBuilder;
+    private Disposable dialogDisposable;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live_wallpaper);
         ButterKnife.bind(this);
         versionType.setText("version: API 17");
-        checkReadExternalStoragePermission();
-        checkWritePermission();
+        PermissionUtils.checkReadExternalStoragePermission(this);
+
+        permissionDialogBuilder = PermissionUtils.checkWritePermission(this);
+        if (permissionDialogBuilder != null) {
+            dialogDisposable = PermissionUtils.setWriteSettingsObserver(this);
+            permissionDialogBuilder.show(getSupportFragmentManager());
+        }
         setListeners();
         subscribe();
-        LiveWallpaperObservable.getInstance().doNext(new WallpaperInfoRequestToken(WallpaperInfoRequestToken.GET_CURRENT_WALLPAPER));
+        RxDataBus.getInstance().doNext(new WallpaperInfoRequestToken(WallpaperInfoRequestToken.GET_CURRENT_WALLPAPER));
         setEnableWallpaerButtonTitle();
         setEnableSchedulerButtonTitle();
     }
 
-    // TODO: Add dialog for explanation
-    private void checkWritePermission() {
-
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (Settings.System.canWrite(this) == false) {
-                showWriteSettingsActivityObserver();
-                new PermissionDialogBuilder.Build()
-                    .with(this)
-                    .listener(new PermissionDialogBuilder.WriteSettingsInfoListener(this))
-                    .title("Ask for permission")
-                    .message("In order to use this application you have to allow to modify system settings by this application.")
-                    .show(getSupportFragmentManager());
-            }
-        }
-    }
-
-    private void showWriteSettingsActivityObserver() {
-
-        Observer<DialogWriteSettingInfo> observer = new Observer<DialogWriteSettingInfo>() {
-            Disposable disposable;
-            @Override
-            public void onSubscribe(Disposable d) {
-                disposable = d;
-            }
-
-            @Override
-            public void onNext(DialogWriteSettingInfo dialogWriteSettingInfo) {
-                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
-                intent.setData(Uri.parse("package:" + getApplicationContext().getPackageName()));
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivityForResult(intent, LiveWallpaperActivity.CODE_WRITE_SETTINGS_PERMISSION);
-                disposable.dispose();
-            }
-
-            @Override
-            public void onError(Throwable e) {
-
-            }
-
-            @Override
-            public void onComplete() {
-
-            }
-        };
-        RxDataBus.getInstance().register(DialogWriteSettingInfo.class, observer);
-
-//        SingleObserver<DialogWriteSettingInfo> single = new SingleObserver<DialogWriteSettingInfo>() {
-//            Disposable disposable;
-//            @Override
-//            public void onSubscribe(Disposable d) {
-//                disposable = d;
-//            }
-//
-//            @Override
-//            public void onSuccess(DialogWriteSettingInfo dialogWriteSettingInfo) {
-//                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
-//                intent.setData(Uri.parse("package:" + getApplicationContext().getPackageName()));
-//                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                startActivityForResult(intent, LiveWallpaperActivity.CODE_WRITE_SETTINGS_PERMISSION);
-//                disposable.dispose();
-//            }
-//
-//            @Override
-//            public void onError(Throwable e) {
-//
-//            }
-//        };
-//        RxDataBus.getInstance().register(DialogWriteSettingInfo.class, single);
-    }
-
-    private void checkReadExternalStoragePermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
-            if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, CODE_READ_EXTERNAL_STORE_PERMISSION);
-            }
-        }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        PermissionUtils.onRequestPermissionsResult(getApplicationContext(), requestCode, permissions, grantResults);
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-
-        switch (requestCode) {
-            case CODE_READ_EXTERNAL_STORE_PERMISSION: {
-                if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    Toast.makeText(this, "READ EXTERNAL STORE Permission granted", Toast.LENGTH_LONG).show();
-                }
-                break;
-            }
-
-            case CODE_WRITE_SETTINGS_PERMISSION: {
-                if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    Toast.makeText(this, "WRITE SETTINGS Permission granted", Toast.LENGTH_LONG).show();
-                }
-                break;
-            }
-
-            default:
-                break;
+    protected void onSaveInstanceState(Bundle outState) {
+        if (dialogDisposable != null && dialogDisposable.isDisposed() == false) {
+            dialogDisposable.dispose();
         }
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onPause() {
+        if (permissionDialogBuilder != null) {
+            permissionDialogBuilder.dismiss();
+        }
+        super.onPause();
     }
 
     @Override
     protected void onDestroy() {
-        if (disposable.isDisposed() == false) {
+        if (disposable != null && disposable.isDisposed() == false) {
             disposable.dispose();
         }
         super.onDestroy();
@@ -215,20 +132,9 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
 
     private void subscribe() {
         observer = getLocalObserver();
-        observable = LiveWallpaperObservable.getInstance().listenToObservable();
+        observable = RxDataBus.getInstance().listenToObservable();
         observable.subscribe(observer);
     }
-
-//    private void test() {
-//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-//            LiveWallpaperObservable.getInstance().register(StringMessageToken.class, new Consumer<StringMessageToken>() {
-//                @Override
-//                public void accept(StringMessageToken stringMessageToken) {
-//                    Toast.makeText(getApplicationContext(),"StringMessageToken",Toast.LENGTH_LONG).show();
-//                }
-//            });
-//        }
-//    }
 
 
     private Observer<DataItem> getLocalObserver() {
@@ -337,11 +243,11 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
                 if (LiveWallpaperUtils.isWallpaperActive(getApplicationContext()) == true) {
                     int id = v.getId();
                     if (id == R.id.wallpaper1)
-                        LiveWallpaperObservable.getInstance().doNext(new WallpaperResourceImageToken(R.drawable.wallpaper1));
+                        RxDataBus.getInstance().doNext(new WallpaperResourceImageToken(R.drawable.wallpaper1));
                     if (id == R.id.wallpaper2)
-                        LiveWallpaperObservable.getInstance().doNext(new WallpaperResourceImageToken(R.drawable.wallpaper2));
+                        RxDataBus.getInstance().doNext(new WallpaperResourceImageToken(R.drawable.wallpaper2));
                     if (id == R.id.wallpaper3)
-                        LiveWallpaperObservable.getInstance().doNext(new WallpaperResourceImageToken(R.drawable.wallpaper3));
+                        RxDataBus.getInstance().doNext(new WallpaperResourceImageToken(R.drawable.wallpaper3));
                 }
             }
         };
@@ -382,16 +288,20 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(LiveWallpaperUtils.TAG, "onActivityResult");
-
+        super.onActivityResult(requestCode,resultCode,data);
         if (requestCode == CODE_WRITE_SETTINGS_PERMISSION) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (Settings.System.canWrite(this) == false) {
-                    new PermissionDialogBuilder.Build()
+                if (dialogDisposable.isDisposed() == false)
+                    dialogDisposable.dispose();
+                permissionDialogBuilder = new PermissionDialogBuilder.Build()
                         .with(this)
                         .listener(new PermissionDialogBuilder.WriteSettingsErrorListener(this))
-                        .title("Error")
-                        .message("You have to allow to modify system settings by this application.")
-                        .show(getSupportFragmentManager());
+                        .title("Information")
+                        .message("Application will restarted to apply new settings.")
+                        .get();
+                if (permissionDialogBuilder != null) {
+                    dialogDisposable = PermissionUtils.setFinishActivityObserver(this);
+                    permissionDialogBuilder.show(getSupportFragmentManager());
                 }
             }
         }
@@ -400,7 +310,7 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
             Log.d(LiveWallpaperUtils.TAG, "onActivityResult code OK");
             subscribe();
             setEnableWallpaerButtonTitle();
-            LiveWallpaperObservable.getInstance().doNext(new WallpaperResourceImageToken(R.drawable.wallpaper1));
+            RxDataBus.getInstance().doNext(new WallpaperResourceImageToken(R.drawable.wallpaper1));
         }
 
     }

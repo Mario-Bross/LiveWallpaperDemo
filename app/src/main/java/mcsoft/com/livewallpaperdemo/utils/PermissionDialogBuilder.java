@@ -12,6 +12,7 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
 import mcsoft.com.livewallpaperdemo.activity.LiveWallpaperActivity;
 import mcsoft.com.livewallpaperdemo.data.DialogWriteSettingInfo;
+import mcsoft.com.livewallpaperdemo.data.DialogWriteSettingsError;
 
 public class PermissionDialogBuilder extends DialogFragment {
 
@@ -31,11 +32,6 @@ public class PermissionDialogBuilder extends DialogFragment {
         @Override
         public void onClick(DialogInterface dialog, int which) {
             RxDataBus.getInstance().post(new DialogWriteSettingInfo());
-
-//            Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
-//            intent.setData(Uri.parse("package:" + this.mContext.getPackageName()));
-//            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//            ((LiveWallpaperActivity)this.mContext).startActivityForResult(intent, LiveWallpaperActivity.CODE_WRITE_SETTINGS_PERMISSION);
         }
     }
 
@@ -49,7 +45,7 @@ public class PermissionDialogBuilder extends DialogFragment {
 
         @Override
         public void onClick(DialogInterface dialog, int which) {
-            ((LiveWallpaperActivity)this.mContext).finish();
+            RxDataBus.getInstance().post(new DialogWriteSettingsError());
         }
     }
 
@@ -69,11 +65,15 @@ public class PermissionDialogBuilder extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
-        return new AlertDialog.Builder(getActivity())
+        Dialog dialog =  new AlertDialog.Builder(getActivity())
             .setTitle(mTitle)
             .setMessage(mMessage)
             .setPositiveButton("OK", mListener)
             .create();
+
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
+        return dialog;
     };
 
     public static final class Build {

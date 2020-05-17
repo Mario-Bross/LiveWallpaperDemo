@@ -20,10 +20,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name="mcsoft.com.livewallpaperdemo.activity.LiveWallpaperActivity">
+        <activity
+            android:name="mcsoft.com.livewallpaperdemo.activity.LiveWallpaperActivity"
+            android:launchMode="singleTop"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>

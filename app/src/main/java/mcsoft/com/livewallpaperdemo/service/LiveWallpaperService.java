@@ -17,13 +17,10 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
 import io.reactivex.Observable;
-import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
 import mcsoft.com.livewallpaperdemo.R;
 import mcsoft.com.livewallpaperdemo.data.DataItem;
 import mcsoft.com.livewallpaperdemo.data.StringMessageToken;
@@ -31,7 +28,7 @@ import mcsoft.com.livewallpaperdemo.data.WallpaperInfoRequestToken;
 import mcsoft.com.livewallpaperdemo.data.WallpaperResourceImageToken;
 import mcsoft.com.livewallpaperdemo.data.WallpaperUriToken;
 import mcsoft.com.livewallpaperdemo.utils.GlideApp;
-import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperObservable;
+import mcsoft.com.livewallpaperdemo.utils.RxDataBus;
 import mcsoft.com.livewallpaperdemo.utils.LiveWallpaperUtils;
 
 public class LiveWallpaperService extends WallpaperService {
@@ -69,7 +66,7 @@ public class LiveWallpaperService extends WallpaperService {
         public void onDestroy() {
             super.onDestroy();
             if (isPreview() == false) {
-                LiveWallpaperObservable.getInstance().doComplete();
+                RxDataBus.getInstance().doComplete();
             }
         }
 
@@ -157,7 +154,7 @@ public class LiveWallpaperService extends WallpaperService {
         private void dispatcher() {
             // Subject - source of all events
             //
-            Observable<DataItem> subjectObservable  = LiveWallpaperObservable.getInstance().listenToObservable();
+            Observable<DataItem> subjectObservable  = RxDataBus.getInstance().listenToObservable();
             subjectObservable.subscribe(new Consumer<DataItem>() {
                 @Override
                 public void accept(DataItem dataItem) throws Exception {
@@ -185,7 +182,7 @@ public class LiveWallpaperService extends WallpaperService {
                         SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(getApplicationContext().getString(R.string.shared_pref_name), Context.MODE_PRIVATE);
                         int resId = sharedPreferences.getInt(getApplicationContext().getString(R.string.shared_pref_resource_id),0);
                         if (resId != 0) {
-                            LiveWallpaperObservable.getInstance().
+                            RxDataBus.getInstance().
                                 doNext(new WallpaperUriToken(LiveWallpaperUtils.getUriToResource(getApplicationContext(),resId)));
                         }
                     }
@@ -211,10 +208,10 @@ public class LiveWallpaperService extends WallpaperService {
                     Log.i(LiveWallpaperUtils.TAG, "observeWallpaperResourceImage::SingleObserver::onSuccess");
                     loadWallpaper(wallpaperResourceImageToken.resId);
                     // Send Message
-                    LiveWallpaperObservable.getInstance().
+                    RxDataBus.getInstance().
                         doNext(new StringMessageToken("Wallpaer changed succesfully"));
 
-                    LiveWallpaperObservable.getInstance().
+                    RxDataBus.getInstance().
                         doNext(new WallpaperUriToken(LiveWallpaperUtils.getUriToResource(getApplicationContext(), wallpaperResourceImageToken.resId)));
 
                     // Send WallpaperInfo
