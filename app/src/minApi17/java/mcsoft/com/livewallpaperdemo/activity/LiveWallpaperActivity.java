@@ -9,9 +9,13 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -69,6 +73,8 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
     @BindView(R.id.wallpaperPreview)
     ImageView wallpaperPreview;
 
+    @BindView(R.id.scheduler_spinner)
+    Spinner scheduler_spinner;
 
     private PermissionDialogBuilder permissionDialogBuilder;
     private Disposable dialogDisposable;
@@ -76,7 +82,7 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_live_wallpaper);
+        setContentView(R.layout.activity_live_wallpaper_3);
         ButterKnife.bind(this);
         versionType.setText("version: API 17");
         PermissionUtils.checkReadExternalStoragePermission(this);
@@ -91,6 +97,34 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
         RxDataBus.getInstance().doNext(new WallpaperInfoRequestToken(WallpaperInfoRequestToken.GET_CURRENT_WALLPAPER));
         setEnableWallpaerButtonTitle();
         setEnableSchedulerButtonTitle();
+        createSpinner();
+    }
+
+
+    private void createSpinner() {
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.scheduler_spinner_values, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        scheduler_spinner.setAdapter(adapter);
+        scheduler_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                int[] values = getResources().getIntArray(R.array.scheduler_spinner_values_int);
+                int val = values[position];
+                if (val < 15) {
+                    String selected = "Period changed to: " + String.valueOf(val) + " minutes. Custom scheduler";
+                    Toast.makeText(parent.getContext(),selected,Toast.LENGTH_LONG).show();
+                } else {
+                    String selected = "Period changed to: " + String.valueOf(val) + " minutes. Work Manager";
+                    Toast.makeText(parent.getContext(),selected,Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 
     @Override
