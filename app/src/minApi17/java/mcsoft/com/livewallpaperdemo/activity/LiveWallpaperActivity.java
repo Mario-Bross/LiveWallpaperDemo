@@ -82,7 +82,7 @@ public class LiveWallpaperActivity extends LiveWallpaperActivityLifecycle {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_live_wallpaper_3);
+        setContentView(R.layout.activity_live_wallpaper);
         ButterKnife.bind(this);
         versionType.setText("version: API 17");
         PermissionUtils.checkReadExternalStoragePermission(this);
